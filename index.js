@@ -337,7 +337,7 @@ function infix2Posfix(infix) {
             }
         } else {
             // invalid token
-            pushPostfixToken(token + ' -> is invalid')
+            pushPostfixToken('[ invalid token : ' + token + ' ]')
         }
 
         // ambil data dari stack
