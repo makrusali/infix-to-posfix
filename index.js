@@ -118,7 +118,7 @@ function split(str) {
                 indexOutput++;
                 break;
             case 1:
-                if (!isNumber(c)) {
+                if (!isNumber(c) && c !== '.') {
                     state = 0;
                     indexOutput++;
                     output[indexOutput] = c;
