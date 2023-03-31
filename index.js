@@ -177,7 +177,7 @@ function appendTableView(root, data, rowLength, columnLength) {
                 }
             }
             for (let col = 0; col < columnLength; col++) {
-                tableHtml += `<td><div class="td_item">${data[row][col]}</div></td>`
+                tableHtml += `<td><div class="td_item td__label">${data[row][col]}</div></td>`
             }
             tableHtml += `</tr>`;
         }
@@ -188,7 +188,6 @@ function appendTableView(root, data, rowLength, columnLength) {
 }
 
 function infix2Posfix(infix) {
-    let output = '';
     const stack = new Stack();
 
     let posPostfixToken = 0;
@@ -234,14 +233,11 @@ function infix2Posfix(infix) {
 
         // jika operand maka jebloskan langsung ke output
         if (isOperand(token)) {
-            // jebloskan
-            output += token;
-            // masukkan ke dalam tabel
-            arrTable[rowLength - 1][i] = token;
-
             // push postfix token
             pushPostfixToken(token);
 
+            // masukkan ke dalam tabel
+            arrTable[rowLength - 1][i] = token;
         } else if (isOperator(token)) {
             // jika operator lihat level operator dari top stack dan operator saat ini (current)
             let levelInStack = operatorLevel(stack.look());
@@ -261,13 +257,15 @@ function infix2Posfix(infix) {
                 /* edited */
                 while (level <= levelInStack) {
                     let data = stack.pop();
-                    output += data;
-                    arrTable[rowLength - 1][i] += data;
 
                     // push postfix token
                     pushPostfixToken(data);
 
+                    // add to table
+                    arrTable[rowLength - 1][i] += ' ' + data;
                     count++;
+
+                    // chek level again
                     levelInStack = operatorLevel(stack.look());
                 }
                 /* end edited */
@@ -304,28 +302,27 @@ function infix2Posfix(infix) {
             let count = 0;
             // cek apakah bukan kurung buka ')'
             while (!isOpenBracket(curr)) {
-                // jika ya !
-                // maka keluarkan data tersebut
-                output += curr;
-                // just for view tabel
-                arrTable[rowLength - 1][i + count] = curr;
-
+                // jika ya ! push ke output
                 // push postfix token
                 pushPostfixToken(curr);
 
+                // just for view tabel
+                arrTable[rowLength - 1][i + count] = curr;
+
                 ++count;
-                // pop 
+
+                // pop next 
                 curr = stack.pop();
             }
         } else if (token === ';') {
             // jika titik koma ';'
             const count = stack.count();
+
             // keluarkan semua elemen sisa di stack
             for (let j = 0; j < count; j++) {
                 let data = stack.pop();
                 // tambahkan ukuran kolom
                 columnLength++;
-                output += data;
 
                 // push postfix token
                 pushPostfixToken(data);
@@ -339,26 +336,44 @@ function infix2Posfix(infix) {
                 arrTable[rowLength - 1][i + j] = data;
             }
         } else {
-            output += ' [' + token + ' is invalid] ';
+            // invalid token
+            pushPostfixToken(token + ' -> is invalid')
         }
 
         // ambil data dari stack
         let data = stack.getData();
 
+        // show :  move stack data to table 
         for (let j = 0; j < data.length; j++) {
             arrTable[(rowLength - 2) - j][i] = data[j];
         }
     }
 
     // append view table
-    appendTableView(root, arrTable, rowLength, columnLength);
+    appendTableView(stackTableEl, arrTable, rowLength, columnLength);
 
     return postfixToken;
 }
 
+
 function eval(posfixToken) {
+
     const tokenLength = posfixToken.length;
     const stack = new Stack();
+
+    let arrTablePos = 0;
+    let arrTable = new Array(tokenLength);
+
+    const pushState = (state) => {
+        arrTable[arrTablePos++] = state;
+    }
+
+    const createState = (currStack, information) => {
+        return {
+            currStack: currStack,
+            information: information
+        }
+    }
 
     function doExpression(a, b, exprs) {
         switch (exprs) {
@@ -380,52 +395,72 @@ function eval(posfixToken) {
 
         if (isOperand(token)) {
             stack.push(parseFloat(token));
+
+            pushState(createState(stack.getData(), `PUSH(${token})`));
         } else if (isOperator(token)) {
+
             const operandB = parseFloat(stack.pop());
             const operandA = parseFloat(stack.pop());
 
             const result = doExpression(operandA, operandB, token);
-            console.info(operandA, token, operandB, '=', result);
 
+            pushState(createState(stack.getData(), `POP(${operandB}), POP(${operandA})<br>${operandA} ${token} ${operandB} = ${result}`));
+            
             stack.push(result);
+            pushState(createState(stack.getData(), `PUSH(${result})`))
         }
     }
 
-    stack.display();
 
+    drawTableState(evalTableConteinerEl, arrTable);
     return stack.pop();
 }
 
-function splitTwoOperator(operator) {
-    if (isOperator(operator)) {
-        if (operator.length > 1) {
-            return [operator[0], operator[1]];
-        }
+function drawTableState(root, tableState) {
+    let html = '';
+
+    const minRow = () => {
+        let sizes = tableState.map((e) => {
+            return e.currStack.length;
+        });
+
+        return Math.max(...sizes)
     }
+
+    const createStateTable = (stackArr, information) => {
+        return `<div class="table_card">
+            <table>
+                ${`<td class="td_item"></td>`.repeat(minRow() - stackArr.length + 1)}
+                ${stackArr.reverse().map((e) => { return `<td class="td_item">${e}</td>` }).join('')}
+            </table >
+        <div>
+            <p class="information_label">${information}</p>
+        </div>
+        </div > `
+    }
+
+    tableState.forEach((e) => {
+        html += createStateTable(e.currStack, e.information);
+    });
+
+    root.innerHTML = html;
 }
 
-const btnKonversiEl = document.getElementById('btn-konversi');
+const btnConvertEl = document.getElementById('btn-konversi');
 const inputInfixEl = document.getElementById('infix');
-const root = document.getElementById('root');
+const stackTableEl = document.getElementById('stack-table-container');
+const resultLabelEl = document.getElementById('result-label');
+const evalTableConteinerEl = document.getElementById('eval-table-container');
+const resultEvalEl = document.getElementById('result-eval-label');
 
-root.innerHTML = ``;
-
-btnKonversiEl.addEventListener('click', (e) => {
+btnConvertEl.addEventListener('click', (e) => {
     e.preventDefault();
-
-    root.innerHTML = '';
 
     const infix = inputInfixEl.value;
     const posfixToken = infix2Posfix(infix);
+    const resultEval = eval(posfixToken);
 
-
-    root.innerHTML += `
-    <div>${posfixToken}</div>
-    `;
-
-    console.log('token : ', posfixToken);
-
-    console.log(eval(posfixToken));
+    resultLabelEl.innerHTML = 'Hasil Postfix : ' + posfixToken.join(' ');
+    resultEvalEl.innerHTML = 'Hasil Evaluasi : ' + resultEval;
 });
-
 
