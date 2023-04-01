@@ -207,7 +207,7 @@ function infix2Posfix(infix) {
     // define row and column length of table
     // row -> count symbol
     // column -> length of splitedInput
-    const rowLength = countSymbol(infix)
+    const rowLength = countSymbol(infix) + 2; // 2 for minimal row length
     let columnLength = splitedLength;
 
     // init row array [...]
@@ -337,7 +337,9 @@ function infix2Posfix(infix) {
             }
         } else {
             // invalid token
-            pushPostfixToken('[ invalid token : ' + token + ' ]')
+            pushPostfixToken('[ invalid token : ' + token + ' ]');
+            alert('[invalid: ' + token + ' | line: ' + i + ']');
+            return ;
         }
 
         // ambil data dari stack
@@ -348,6 +350,8 @@ function infix2Posfix(infix) {
             arrTable[(rowLength - 2) - j][i] = data[j];
         }
     }
+
+    console.log(arrTable);
 
     // append view table
     appendTableView(stackTableEl, arrTable, rowLength, columnLength);
@@ -452,9 +456,18 @@ const stackTableEl = document.getElementById('stack-table-container');
 const resultLabelEl = document.getElementById('result-label');
 const evalTableConteinerEl = document.getElementById('eval-table-container');
 const resultEvalEl = document.getElementById('result-eval-label');
+const messageModalEl = document.getElementById('message-modal');
+
 
 btnConvertEl.addEventListener('click', (e) => {
     e.preventDefault();
+
+    console.log('message modal el : ', messageModalEl);
+    resultEvalEl.innerHTML = '';
+    evalTableConteinerEl.innerHTML = '';
+    resultLabelEl.innerHTML = '';
+    stackTableEl.innerHTML = '';
+
 
     const infix = inputInfixEl.value;
     const posfixToken = infix2Posfix(infix);

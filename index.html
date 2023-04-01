@@ -102,6 +102,10 @@
             font-weight: bold;
             margin-bottom: 24px;
         }
+
+        .modal__hidden {
+            display: none;
+        }
     </style>
 </head>
 
@@ -159,6 +163,10 @@ repo -> <a href="https://github.com/makrusali/infix-to-posfix">https://github.co
 
     <script src=" index.js">
     </script>
+
+    <div id="message-modal" class="modal modal__hidden" style="padding: 24px; box-shadow: 0px 0px 10px rgb(219, 219, 219); border: 1px dashed black; background-color: white; position: fixed; width: 600px; height: 300px; top: 0; right: 0; left: 0; bottom: 0; margin: auto;">
+        Invalid Token
+    </div>
 
     <footer>
         <pre>
