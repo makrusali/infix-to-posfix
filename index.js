@@ -221,11 +221,19 @@ window.onload = function () {
         let arrInfixSplited = split(infix);
         let splitedLength = arrInfixSplited.length;
 
+        // if no ';' (semi colon) in end position of input
+        // add ';'
+        if (arrInfixSplited[splitedLength - 1] != ';') {
+            arrInfixSplited[splitedLength] = ';';
+            console.log( {arrInfixSplited, splitedLength });
+            ++splitedLength;
+        }
+
         // define row and column length of table
         // row -> count symbol
         // column -> length of splitedInput
         const rowLength = countSymbol(infix) + 2; // 2 for minimal row length
-        let columnLength = splitedLength;
+        let columnLength = splitedLength - 1;
 
         // init row array [...]
         let arrTable = new Array(rowLength);
@@ -237,12 +245,8 @@ window.onload = function () {
         // top of array -> arrInfixSplited
         arrTable[0] = arrInfixSplited;
 
-        // if no ';' (semi colon) in end position of input
-        // add ';'
-        if (arrInfixSplited[splitedLength - 1] !== ';') {
-            arrInfixSplited[splitedLength] = ';';
-            ++splitedLength;
-        }
+        
+        console.log({splitedLength});
 
         // scanning 
         for (let i = 0; i < splitedLength; i++) {
